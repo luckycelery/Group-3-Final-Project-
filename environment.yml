@@ -1,0 +1,40 @@
+# ============================================================
+# GROUP 3 PROJECT ENVIRONMENT
+# ============================================================
+# HOW TO INSTALL THIS ENVIRONMENT (READ THIS FIRST!):
+#
+# 1. Make sure you have Anaconda or Miniconda installed.
+#
+# 2. Open your terminal
+#
+# 3. Navigate to the folder where you cloned the GitHub repo.
+#       Example:
+#           cd path/to/your/folder
+#
+# 4. Run this command to create the environment:
+#           conda env create -f environment.yml
+#
+# 5. Activate the environment:
+#           conda activate group3
+#
+# 6. To update the environment later (if Emma changes this file):
+#           conda env update -f environment.yml --prune
+#
+# 7. If your environment ever breaks, you can delete and recreate it:
+#           conda remove --name group3 --all
+#           conda env create -f environment.yml
+#
+# ============================================================
+
+name: group3
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.10
+  - pandas
+  - numpy
+  - scipy
+  - scikit-learn
+
