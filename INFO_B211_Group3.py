@@ -48,7 +48,13 @@ def load_data(script_dir):
     raw_file = os.path.join(script_dir, "Data.csv")
     # read data file and return contents within a pd df
     df = pd.read_csv(raw_file)
-    return df
+    
+    df_head = df.head()
+    df_info = df.info()
+    df_desc = df.describe()
+    df_shape = df.shape
+
+    return df, df_head, df_info, df_desc, df_shape
 
 
 # =========================================================
@@ -65,7 +71,39 @@ def clean_data(df):
     - filter out irrelevant rows
     - convert data types
     """
-    # TODO: fill in once we inspect the dataset
+    #Remove missing values 
+    df = df.rename(columns={
+        "Series Name": "series",
+        "Country Name": "country"
+    })
+
+    df = df.dropna(subset=["country"])
+
+    #Unique Mortality Types 
+    print(df["series"].unique())
+    #output of post mortality types unique values before filtering for mortality related series
+    pd.Series(df["series"].unique()).to_csv("unique_mortality_types.csv", index=False)
+
+    #Filter the dataset to include only mortality-related series
+    mortality_df = df.loc[
+        df["series"].str.contains("Mortality rate|Death rate|Mortality", case=False)]
+    print(mortality_df["series"].unique())
+    # output of post filter mortality types unique values before dropping rows with missing country or year data
+    pd.Series(mortality_df["series"].unique()).to_csv("post_filter_mortality_types.csv", index=False)
+
+    print(mortality_df.head())
+
+    #Drop rows missing country
+    mortality_df = mortality_df.dropna(subset=["country"])
+
+    #Drop rows missing all year data
+    year_columns = [str(y) for y in range(2000, 2024)]
+    mortality_df = mortality_df.dropna(subset=year_columns)
+    print(mortality_df.head())
+
+    #Saved cleaned dataset 
+    mortality_df.to_csv("cleaned_mortality_data.csv", index=False)
+    mortality_df.to_excel("cleaned_mortality_data.xlsx", index=False)
     return df
 
 
@@ -101,7 +139,7 @@ if __name__ == "__main__":
     # dynamic path setup for script dir
     script_dir = os.path.dirname(__file__)
     # call for data to be loaded into the program 
-    df = load_data(script_dir)
-    # df = clean_data(df)
+    df, df_head, df_info, df_desc, df_shape = load_data(script_dir)
+    df = clean_data(df)
 
     print(df.head())
