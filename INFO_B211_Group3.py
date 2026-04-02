@@ -102,7 +102,13 @@ def clean_data(df):
     #Saved cleaned dataset 
     mortality_df.to_csv("cleaned_mortality_data.csv", index=False)
     mortality_df.to_excel("cleaned_mortality_data.xlsx", index=False)
-    return df
+
+    # Convert year columns to numeric (ensures compatibility with regression)
+    mortality_df[year_columns] = mortality_df[year_columns].apply(
+        pd.to_numeric, errors="coerce"
+    )
+
+    return mortality_df
 
 
 # =========================================================
