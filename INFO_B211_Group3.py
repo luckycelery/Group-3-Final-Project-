@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 from scipy import stats, interpolate, integrate # WE CAN ADD MORE AS WE GO THESE ARE JUST SO WE DON'T HAVE TO TYPE AS MUCH LATER
-from sklearn import preprocessing, model_selection, metrics # WE CAN ADD MORE AS WE GO THESE ARE JUST SO WE DON'T HAVE TO TYPE AS MUCH LATER
+from sklearn import preprocessing, model_selection, metrics, ensemble, linear_model, neighbors, tree # WE CAN ADD MORE AS WE GO THESE ARE JUST SO WE DON'T HAVE TO TYPE AS MUCH LATER
 
 # =========================================================
 # TEMPLATE FOR FUNCTION DOCUMENTATION (FOR JOSIE)
@@ -122,13 +122,6 @@ def clean_data(df):
 # =========================================================
 # PREDICTIVE MODELING (SCIKIT‑LEARN)
 # =========================================================
-from sklearn import model_selection
-from sklearn import linear_model
-from sklearn import ensemble
-from sklearn import neighbors
-from sklearn import tree
-from sklearn import metrics
-
 def run_predictive_modeling(df):
     """
     Runs simple predictive models for each mortality indicator.
