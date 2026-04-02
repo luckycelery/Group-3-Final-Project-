@@ -1,36 +1,32 @@
 import os
 import pandas as pd
 import numpy as np
-from scipy import stats, interpolate, integrate # WE CAN ADD MORE AS WE GO THESE ARE JUST SO WE DON'T HAVE TO TYPE AS MUCH LATER
-from sklearn import preprocessing, model_selection, metrics, ensemble, linear_model, neighbors, tree # WE CAN ADD MORE AS WE GO THESE ARE JUST SO WE DON'T HAVE TO TYPE AS MUCH LATER
+
+# ============================
+# SCIPY (STATISTICS + MODELING) IMPORTS
+# ============================
+from scipy.stats import linregress, ttest_ind
+from scipy.interpolate import interp1d
+from scipy.optimize import curve_fit
+
+# ============================
+# SCIKIT-LEARN (ML) IMPORTS
+# ============================
+from sklearn import (
+    preprocessing,
+    model_selection,
+    metrics,
+    ensemble,
+    linear_model,
+    neighbors,
+    tree
+)
+
+# ============================
+# VISUALIZATION IMPORTS
+# ============================
 import matplotlib.pyplot as plt
 import seaborn as sns
- 
-# =========================================================
-# TEMPLATE FOR FUNCTION DOCUMENTATION (FOR JOSIE)
-# =========================================================
-
-def example_function_description():
-    """
-    Brief description of what the brainstormed function will do.
-    
-    Notes for Josie:
-    - Describe the purpose of the function.
-    - Mention important arguments (args) and what the function returns 
-      (LATER ON ONCE WE KNOW WHAT TO DO AND ALL THAT JAZZ)
-    - Keep descriptions concise but clear.
-    """
-    pass
-
-# example hypothetical function 
-def country_mortality_comparison():
-    """
-    Compares mortality rates between countries.
-    Inputs: hypothetical df, country list, metric selection.
-    Returns: summary statistics or comparison table.
-    """
-    pass
-
 
 # =========================================================
 # DATA LOADING
