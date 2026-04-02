@@ -1,34 +1,32 @@
 import os
 import pandas as pd
 import numpy as np
-from scipy import stats, interpolate, integrate # WE CAN ADD MORE AS WE GO THESE ARE JUST SO WE DON'T HAVE TO TYPE AS MUCH LATER
-from sklearn import preprocessing, model_selection, metrics, ensemble, linear_model, neighbors, tree # WE CAN ADD MORE AS WE GO THESE ARE JUST SO WE DON'T HAVE TO TYPE AS MUCH LATER
 
-# =========================================================
-# TEMPLATE FOR FUNCTION DOCUMENTATION (FOR JOSIE)
-# =========================================================
+# ============================
+# SCIPY (STATISTICS + MODELING) IMPORTS
+# ============================
+from scipy.stats import linregress, ttest_ind
+from scipy.interpolate import interp1d
+from scipy.optimize import curve_fit
 
-def example_function_description():
-    """
-    Brief description of what the brainstormed function will do.
-    
-    Notes for Josie:
-    - Describe the purpose of the function.
-    - Mention important arguments (args) and what the function returns 
-      (LATER ON ONCE WE KNOW WHAT TO DO AND ALL THAT JAZZ)
-    - Keep descriptions concise but clear.
-    """
-    pass
+# ============================
+# SCIKIT-LEARN (ML) IMPORTS
+# ============================
+from sklearn import (
+    preprocessing,
+    model_selection,
+    metrics,
+    ensemble,
+    linear_model,
+    neighbors,
+    tree
+)
 
-# example hypothetical function 
-def country_mortality_comparison():
-    """
-    Compares mortality rates between countries.
-    Inputs: hypothetical df, country list, metric selection.
-    Returns: summary statistics or comparison table.
-    """
-    pass
-
+# ============================
+# VISUALIZATION IMPORTS
+# ============================
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # =========================================================
 # DATA LOADING
@@ -58,52 +56,62 @@ def load_data(script_dir):
 
 
 # =========================================================
-# DATA CLEANING (JULIA THIS IS WHERE YOU WILL PUT ALL YOUR FUNCS FOR CLEANING 
-#                  AND THEN CALL IN THE MAIN — EXAMPLE IN CODE COMMENTS OF MAIN EXECUTION)
+# DATA CLEANING AND PREPARATION
 # =========================================================
 
 def clean_data(df):
     """
-    Placeholder for data cleaning steps.
-    This is where we will:
-    - handle missing values
-    - standardize column names
-    - filter out irrelevant rows
-    - convert data types
+    Cleans the raw mortality dataset by standardizing column names,
+    filtering to mortality-related indicators, removing unusable rows,
+    and converting year columns to numeric types.
+
+    Returns a cleaned dataframe ready for analysis.
     """
-    #Remove missing values 
+
+    # Standardize key column names for consistency
     df = df.rename(columns={
         "Series Name": "series",
         "Country Name": "country"
     })
 
+    # Remove rows missing a country name (cannot be used in analysis)
     df = df.dropna(subset=["country"])
 
-    #Unique Mortality Types 
+    # Inspect all unique series names before filtering
     print(df["series"].unique())
-    #output of post mortality types unique values before filtering for mortality related series
     pd.Series(df["series"].unique()).to_csv("unique_mortality_types.csv", index=False)
 
-    #Filter the dataset to include only mortality-related series
+    # Keep only rows where the series name indicates a mortality-related metric
     mortality_df = df.loc[
-        df["series"].str.contains("Mortality rate|Death rate|Mortality", case=False)]
+        df["series"].str.contains("Mortality rate|Death rate|Mortality", case=False)
+    ]
+
+    # Inspect unique series names after filtering
     print(mortality_df["series"].unique())
-    # output of post filter mortality types unique values before dropping rows with missing country or year data
     pd.Series(mortality_df["series"].unique()).to_csv("post_filter_mortality_types.csv", index=False)
 
+    # Preview the filtered dataset
     print(mortality_df.head())
 
-    #Drop rows missing country
+    # Remove rows missing country (extra safety check)
     mortality_df = mortality_df.dropna(subset=["country"])
 
-    #Drop rows missing all year data
+    # Remove rows missing *all* year values (no usable time series)
     year_columns = [str(y) for y in range(2000, 2024)]
     mortality_df = mortality_df.dropna(subset=year_columns)
+
+    # Preview after dropping incomplete rows
     print(mortality_df.head())
 
-    #Saved cleaned dataset 
+    # Save cleaned dataset for debugging and transparency
     mortality_df.to_csv("cleaned_mortality_data.csv", index=False)
     mortality_df.to_excel("cleaned_mortality_data.xlsx", index=False)
+
+    # Convert year columns to numeric (ensures compatibility with regression)
+    mortality_df[year_columns] = mortality_df[year_columns].apply(
+        pd.to_numeric, errors="coerce"
+    )
+
     return mortality_df
 
 
