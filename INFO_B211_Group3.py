@@ -2,8 +2,10 @@ import os
 import pandas as pd
 import numpy as np
 from scipy import stats, interpolate, integrate # WE CAN ADD MORE AS WE GO THESE ARE JUST SO WE DON'T HAVE TO TYPE AS MUCH LATER
-from sklearn import preprocessing, model_selection, metrics # WE CAN ADD MORE AS WE GO THESE ARE JUST SO WE DON'T HAVE TO TYPE AS MUCH LATER
-
+from sklearn import preprocessing, model_selection, metrics, ensemble, linear_model, neighbors, tree # WE CAN ADD MORE AS WE GO THESE ARE JUST SO WE DON'T HAVE TO TYPE AS MUCH LATER
+import matplotlib.pyplot as plt
+import seaborn as sns
+ 
 # =========================================================
 # TEMPLATE FOR FUNCTION DOCUMENTATION (FOR JOSIE)
 # =========================================================
