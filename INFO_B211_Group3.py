@@ -5,6 +5,7 @@ import numpy as np
 # ============================
 # SCIPY (STATISTICS + MODELING) IMPORTS
 # ============================
+from pandas import melt
 from scipy.stats import linregress, ttest_ind
 from scipy.interpolate import interp1d
 from scipy.optimize import curve_fit
@@ -500,6 +501,138 @@ def run_predictive_modeling(df):
 # DATA VISUALIZATION
 # =========================================================
 
+# Answers: “How have global mortality rates changed from 2000 to 2020?”
+def plot_global_mortality_trends(df, output_dir=None):
+    # Global mortality trend from 2000–2020 using seaborn lineplot.
+    
+    # Create a list of years for the plot
+    years = list(range(2000, 2021))
+   
+    # Stores average global mortality rate for each year
+    global_means = []
+    # For each year, computes the mean mortality across all countries
+    for y in years:
+        col = str(y)
+        global_means.append(df[col].mean())
+
+    # Creates lineplot of global mortality trend over time
+    plt.figure(figsize=(12, 6))
+    sns.lineplot(x=years, y=global_means)
+    plt.title("Global Mortality Trend (2000–2020)")
+    plt.xlabel("Year")
+    plt.ylabel("Average Mortality Rate")
+    tick_years = years[::2]
+    plt.xticks(tick_years, [str(y) for y in tick_years])
+    plt.grid(True)
+
+    if output_dir:
+        plt.savefig(os.path.join(output_dir, "01_global_mortality_trend.png"), dpi=300, bbox_inches="tight")
+
+    plt.show()
+
+# Answers: “Which groups show the greatest improvements or declines?”
+def plot_country_comparison(df, selected_countries, output_dir=None):
+    # Plots mortality trends for selected countries.
+
+    # List of years to plot
+    years = list(range(2000, 2021))
+
+    plt.figure(figsize=(14, 7))
+
+    # Loop through each selected country and plot its trendline
+    for country in selected_countries:
+        # Filter dataset to only this country
+        subset = df[df["country"] == country]
+        # List to store yearly averages for this country
+        yearly_means = []
+        # Loop through each year and compute mean mortality
+        for y in years:
+            yearly_means.append(subset[str(y)].mean())
+        # Create a lineplot for this country
+        sns.lineplot(x=years, y=yearly_means, label=country)
+
+    plt.title("Country-Specific Mortality Trends (2000–2020)")
+    plt.xlabel("Year")
+    plt.ylabel("Average Mortality Rate")
+    tick_years = years[::2]
+    plt.xticks(tick_years, [str(y) for y in tick_years])
+    plt.legend()
+    plt.grid(True)
+
+    if output_dir:
+        plt.savefig(os.path.join(output_dir, "02_country_specific_mortality_trends.png"), dpi=300, bbox_inches="tight")
+
+    plt.show()
+
+# Answers: “How do specific causes of death contribute to overall mortality trends?”
+def cause_specific(df, causes, output_dir=None):
+    # List of years to plot
+    years = list(range(2000, 2021))
+
+    plt.figure(figsize=(14, 7))
+
+    # Loop through each cause and plot its trendline
+    for cause in causes:
+        subset = df[df["series"] == cause]
+        yearly_means = []
+        # Loop through each year and compute mean mortality for this cause
+        for y in years:
+            yearly_means.append(subset[str(y)].mean())
+        # Create a lineplot for this cause
+        sns.lineplot(x=years, y=yearly_means, label=cause)
+
+    plt.title("Cause-Specific Mortality Trends (2000–2020)")
+    plt.xlabel("Year")
+    plt.ylabel("Average Mortality Rate")
+    tick_years = years[::2]
+    plt.xticks(tick_years, [str(y) for y in tick_years])
+    plt.legend(title="Cause of Death")
+    plt.grid(True)
+
+    if output_dir:
+        plt.savefig(os.path.join(output_dir, "03_cause_specific_mortality_trends.png"), dpi=300, bbox_inches="tight")
+
+    plt.show()
+
+# Answers: “What relationships exist between population growth and mortality patterns?”
+def birth_rate_vs_mortality_scatter(df, raw_df, output_dir=None):
+    # Use raw data for birth-rate series, because cleaned df only keeps mortality rows.
+    if "series" not in raw_df.columns and "Series Name" in raw_df.columns:
+        raw_df = raw_df.rename(columns={"Series Name": "series"})
+
+    # Filter to birth rate series
+    birth_df = raw_df[raw_df["series"] == "Birth rate, crude (per 1,000 people)"]
+
+    # Compute global birth rate per year
+    years = list(range(2000, 2021))
+    birth_rates = []
+    mortality_rates = []
+
+    # For each year, compute the average birth rate and average mortality rate across all countries.
+    for y in years:
+        col = str(y)
+        birth_mean = pd.to_numeric(birth_df[col], errors="coerce").mean()
+        mortality_mean = pd.to_numeric(df[col], errors="coerce").mean()
+
+        if pd.notna(birth_mean) and pd.notna(mortality_mean):
+            birth_rates.append(birth_mean)
+            mortality_rates.append(mortality_mean)
+
+    if len(birth_rates) == 0:
+        print("No valid birth-rate data was found for Chart 4.")
+        return
+
+    plt.figure(figsize=(10, 6))
+    sns.scatterplot(x=birth_rates, y=mortality_rates)
+    plt.title("Birth Rate vs Global Mortality (2000–2020)")
+    plt.xlabel("Birth Rate (per 1,000 people)")
+    plt.ylabel("Global Mortality Rate")
+    plt.grid(True)
+
+    if output_dir:
+        plt.savefig(os.path.join(output_dir, "04_birth_rate_vs_mortality_scatter.png"), dpi=300, bbox_inches="tight")
+
+    plt.show()
 
 
 # =========================================================
@@ -510,8 +643,35 @@ if __name__ == "__main__":
     # dynamic path setup for script dir
     script_dir = os.path.dirname(__file__)
     # call for data to be loaded into the program 
-    df, df_head, df_info, df_desc, df_shape = load_data(script_dir)
-    df = clean_data(df)
+    raw_df, df_head, df_info, df_desc, df_shape = load_data(script_dir)
+    df = clean_data(raw_df.copy())
+
+    # Save chart outputs into a dedicated folder in the project directory.
+    charts_dir = os.path.join(script_dir, "charts")
+    os.makedirs(charts_dir, exist_ok=True)
+
+    # Remove old chart images so only current-run outputs appear.
+    for filename in os.listdir(charts_dir):
+        if filename.lower().endswith(".png"):
+            os.remove(os.path.join(charts_dir, filename))
+
+    # === VISUALIZATION CALLS ===
+    plot_global_mortality_trends(df, output_dir=charts_dir)
+
+    # Plot 2 example call
+    selected_countries = ["United States", "Canada", "Mexico"]
+    plot_country_comparison(df, selected_countries, output_dir=charts_dir)
+
+    
+    # Example call
+    cause_specific(df, [
+    "Mortality rate, infant (per 1,000 live births)",
+    "Mortality rate, adult, male (per 1,000 male adults)",
+    "Suicide mortality rate (per 100,000 population)"
+    ], output_dir=charts_dir)
+
+    birth_rate_vs_mortality_scatter(df, raw_df, output_dir=charts_dir)
+
 
     # === SCIPY ANALYSIS CALLS ===
     linreg_results = analyze_trends_linreg(df)
