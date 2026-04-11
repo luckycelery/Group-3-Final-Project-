@@ -29,6 +29,9 @@ from sklearn import (
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# Apply a consistent visual theme for all plots.
+sns.set_theme(style="whitegrid", palette="muted", font_scale=1.1)
+
 # =========================================================
 # DATA LOADING
 # =========================================================
@@ -517,13 +520,17 @@ def plot_global_mortality_trends(df, output_dir=None):
 
     # Creates lineplot of global mortality trend over time
     plt.figure(figsize=(12, 6))
-    sns.lineplot(x=years, y=global_means)
-    plt.title("Global Mortality Trend (2000–2020)")
-    plt.xlabel("Year")
-    plt.ylabel("Average Mortality Rate")
+    ax = sns.lineplot(x=years, y=global_means, marker="o", linewidth=2.4, color="#2a9d8f")
+    ax.fill_between(years, global_means, alpha=0.15, color="#2a9d8f")
+    plt.title("Global Mortality Trend (2000–2020)", fontsize=16, weight="bold")
+    plt.xlabel("Year", fontsize=12)
+    plt.ylabel("Average Mortality Rate", fontsize=12)
     tick_years = years[::2]
     plt.xticks(tick_years, [str(y) for y in tick_years])
-    plt.grid(True)
+    plt.gca().set_facecolor("#f7f9f9")
+    sns.despine(trim=True, left=False)
+    plt.grid(True, alpha=0.35)
+    plt.tight_layout()
 
     if output_dir:
         plt.savefig(os.path.join(output_dir, "01_global_mortality_trend.png"), dpi=300, bbox_inches="tight")
@@ -538,26 +545,32 @@ def plot_country_comparison(df, selected_countries, output_dir=None):
     years = list(range(2000, 2021))
 
     plt.figure(figsize=(14, 7))
+    palette = sns.color_palette("tab10", n_colors=len(selected_countries))
 
     # Loop through each selected country and plot its trendline
-    for country in selected_countries:
-        # Filter dataset to only this country
+    for country, color in zip(selected_countries, palette):
         subset = df[df["country"] == country]
-        # List to store yearly averages for this country
-        yearly_means = []
-        # Loop through each year and compute mean mortality
-        for y in years:
-            yearly_means.append(subset[str(y)].mean())
-        # Create a lineplot for this country
-        sns.lineplot(x=years, y=yearly_means, label=country)
+        yearly_means = [subset[str(y)].mean() for y in years]
+        sns.lineplot(
+            x=years,
+            y=yearly_means,
+            label=country,
+            marker="o",
+            linewidth=2.2,
+            color=color,
+            markersize=6
+        )
 
-    plt.title("Country-Specific Mortality Trends (2000–2020)")
-    plt.xlabel("Year")
-    plt.ylabel("Average Mortality Rate")
+    plt.title("Country-Specific Mortality Trends (2000–2020)", fontsize=16, weight="bold")
+    plt.xlabel("Year", fontsize=12)
+    plt.ylabel("Average Mortality Rate", fontsize=12)
     tick_years = years[::2]
     plt.xticks(tick_years, [str(y) for y in tick_years])
-    plt.legend()
-    plt.grid(True)
+    plt.gca().set_facecolor("#f7f9f9")
+    plt.grid(True, alpha=0.3)
+    plt.legend(title="Country", frameon=True, edgecolor="#cccccc", loc="upper right")
+    sns.despine(trim=True, left=False)
+    plt.tight_layout()
 
     if output_dir:
         plt.savefig(os.path.join(output_dir, "02_country_specific_mortality_trends.png"), dpi=300, bbox_inches="tight")
@@ -570,24 +583,32 @@ def cause_specific(df, causes, output_dir=None):
     years = list(range(2000, 2021))
 
     plt.figure(figsize=(14, 7))
+    palette = sns.color_palette("bright", n_colors=len(causes))
 
     # Loop through each cause and plot its trendline
-    for cause in causes:
+    for cause, color in zip(causes, palette):
         subset = df[df["series"] == cause]
-        yearly_means = []
-        # Loop through each year and compute mean mortality for this cause
-        for y in years:
-            yearly_means.append(subset[str(y)].mean())
-        # Create a lineplot for this cause
-        sns.lineplot(x=years, y=yearly_means, label=cause)
+        yearly_means = [subset[str(y)].mean() for y in years]
+        sns.lineplot(
+            x=years,
+            y=yearly_means,
+            label=cause,
+            marker="o",
+            linewidth=2,
+            color=color,
+            markersize=6
+        )
 
-    plt.title("Cause-Specific Mortality Trends (2000–2020)")
-    plt.xlabel("Year")
-    plt.ylabel("Average Mortality Rate")
+    plt.title("Cause-Specific Mortality Trends (2000–2020)", fontsize=16, weight="bold")
+    plt.xlabel("Year", fontsize=12)
+    plt.ylabel("Average Mortality Rate", fontsize=12)
     tick_years = years[::2]
     plt.xticks(tick_years, [str(y) for y in tick_years])
-    plt.legend(title="Cause of Death")
-    plt.grid(True)
+    plt.gca().set_facecolor("#f7f9f9")
+    plt.grid(True, alpha=0.3)
+    plt.legend(title="Cause of Death", frameon=True, edgecolor="#cccccc", loc="upper right")
+    sns.despine(trim=True, left=False)
+    plt.tight_layout()
 
     if output_dir:
         plt.savefig(os.path.join(output_dir, "03_cause_specific_mortality_trends.png"), dpi=300, bbox_inches="tight")
@@ -623,11 +644,29 @@ def birth_rate_vs_mortality_scatter(df, raw_df, output_dir=None):
         return
 
     plt.figure(figsize=(10, 6))
-    sns.scatterplot(x=birth_rates, y=mortality_rates)
-    plt.title("Birth Rate vs Global Mortality (2000–2020)")
-    plt.xlabel("Birth Rate (per 1,000 people)")
-    plt.ylabel("Global Mortality Rate")
-    plt.grid(True)
+    ax = sns.regplot(
+        x=birth_rates,
+        y=mortality_rates,
+        scatter_kws={"s": 80, "alpha": 0.85, "color": "#264653"},
+        line_kws={"color": "#e76f51", "linewidth": 2.2},
+        truncate=False
+    )
+    corr = np.corrcoef(birth_rates, mortality_rates)[0, 1]
+    plt.title("Birth Rate vs Global Mortality (2000–2020)", fontsize=16, weight="bold")
+    plt.xlabel("Birth Rate (per 1,000 people)", fontsize=12)
+    plt.ylabel("Global Mortality Rate", fontsize=12)
+    plt.gca().set_facecolor("#f7f9f9")
+    plt.grid(True, alpha=0.3)
+    plt.text(
+        0.05,
+        0.90,
+        f"Correlation: {corr:.2f}",
+        transform=ax.transAxes,
+        fontsize=11,
+        bbox={"facecolor": "white", "alpha": 0.8, "edgecolor": "#cccccc"}
+    )
+    sns.despine(trim=True, left=False)
+    plt.tight_layout()
 
     if output_dir:
         plt.savefig(os.path.join(output_dir, "04_birth_rate_vs_mortality_scatter.png"), dpi=300, bbox_inches="tight")
@@ -655,28 +694,26 @@ if __name__ == "__main__":
         if filename.lower().endswith(".png"):
             os.remove(os.path.join(charts_dir, filename))
 
+    # === ANALYSIS CALLS ===
+    linreg_results = analyze_trends_linreg(df)
+    trendline_predictions = generate_linear_trendlines(df)
+    ttest_results = pairwise_ttests(df)
+    sklearn_mortality_model_results = run_predictive_modeling(df)
+
+    print(df.head())
+
     # === VISUALIZATION CALLS ===
     plot_global_mortality_trends(df, output_dir=charts_dir)
 
     # Plot 2 example call
     selected_countries = ["United States", "Canada", "Mexico"]
     plot_country_comparison(df, selected_countries, output_dir=charts_dir)
-
     
     # Example call
     cause_specific(df, [
-    "Mortality rate, infant (per 1,000 live births)",
-    "Mortality rate, adult, male (per 1,000 male adults)",
-    "Suicide mortality rate (per 100,000 population)"
+        "Mortality rate, infant (per 1,000 live births)",
+        "Mortality rate, adult, male (per 1,000 male adults)",
+        "Suicide mortality rate (per 100,000 population)"
     ], output_dir=charts_dir)
 
     birth_rate_vs_mortality_scatter(df, raw_df, output_dir=charts_dir)
-
-
-    # === SCIPY ANALYSIS CALLS ===
-    linreg_results = analyze_trends_linreg(df)
-    trendline_predictions = generate_linear_trendlines(df)
-    ttest_results = pairwise_ttests(df)
-
-    print(df.head())
-    sklearn_mortality_model_results = run_predictive_modeling(df)
